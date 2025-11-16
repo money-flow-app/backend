@@ -14,6 +14,7 @@ public class MailService {
     public void sendActivationCode(String email, String code){
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
+        message.setFrom("noreply@moneyflow.cm");
         message.setSubject("Votre code d'activation");
         message.setText("Bonjour,\n\nVotre code d'activation est : " + code + "\n\nMerci d'utiliser notre service.");
         mailSender.send(message);

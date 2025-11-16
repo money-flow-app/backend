@@ -2,6 +2,7 @@ package cm.bogne_stanley.money_flow.data.entity;
 
 import java.time.Instant;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +25,7 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(nullable = false, unique = true)
     private String email;
     private String firstname;
     private String lastname;

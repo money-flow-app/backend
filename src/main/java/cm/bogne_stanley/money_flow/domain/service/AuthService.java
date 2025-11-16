@@ -66,6 +66,9 @@ public class AuthService {
     @SuppressWarnings("null")
     public String register(RegisterRequest request){
         User newUser = request.toUser(passwordEncoder);
+        if(userRepository.findByEmail(newUser.getEmail()).isPresent()){
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
         User user = userRepository.save(newUser);
 
         ActivationCode activationCode = ActivationCode.builder()
@@ -74,6 +77,8 @@ public class AuthService {
                 .build();
 
         activationCodeRepository.save(activationCode);
+
+        mailService.sendActivationCode(user.getEmail(), activationCode.getCode());
         
         return "A validation code has been sent to " + user.getEmail();
     }

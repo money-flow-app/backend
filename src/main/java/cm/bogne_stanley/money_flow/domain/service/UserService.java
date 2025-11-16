@@ -5,6 +5,8 @@ import cm.bogne_stanley.money_flow.common.exception.ErrorCode;
 import cm.bogne_stanley.money_flow.presentation.dto.UserDto;
 import cm.bogne_stanley.money_flow.presentation.dto.request.user.ResetPasswordRequest;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -53,13 +55,11 @@ public class UserService {
     public String logout(){
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
-        RefreshToken token = refreshTokenRepository.findByUser(user)
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN));
-
-        if(token == null){
+        List<RefreshToken> tokens = refreshTokenRepository.findByUser(user);
+        if(tokens.isEmpty()){
             throw new BusinessException(ErrorCode.INVALID_TOKEN);
         }
-        refreshTokenRepository.delete(token);
+        refreshTokenRepository.deleteAll(tokens);
 
         return "You have been logged out successfully";
     }

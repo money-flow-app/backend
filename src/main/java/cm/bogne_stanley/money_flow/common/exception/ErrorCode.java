@@ -13,7 +13,7 @@ public enum ErrorCode {
     INVALID_CREDENTIALS("Invalid credentials", HttpStatus.UNAUTHORIZED),
     ACCOUNT_NOT_ACTIVATED("Account not activated", HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND("User not found", HttpStatus.NOT_FOUND),
-    
+    EMAIL_ALREADY_EXISTS("Email already exists", HttpStatus.BAD_REQUEST),
     // Erreurs de code d'activation
     INVALID_CODE("Invalid activation code", HttpStatus.BAD_REQUEST),
     CODE_NOT_FOUND("Activation code not found", HttpStatus.NOT_FOUND),
