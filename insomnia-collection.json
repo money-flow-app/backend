@@ -1,0 +1,243 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2025-11-19T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_money_flow",
+      "_type": "workspace",
+      "name": "Money Flow API",
+      "description": "API complète pour Money Flow",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "access_token": "",
+        "refresh_token": ""
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "access_token", "refresh_token"]
+      },
+      "parentId": "wrk_money_flow"
+    },
+    {
+      "_id": "folder_auth",
+      "_type": "request_group",
+      "name": "Authentication",
+      "description": "Endpoints d'authentification",
+      "parentId": "wrk_money_flow"
+    },
+    {
+      "_id": "req_register",
+      "_type": "request",
+      "name": "Register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "url": "{{ _.base_url }}/api/auth/register",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"lastname\": \"Doe\",\n  \"firtname\": \"John\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "name": "Login",
+      "description": "Connexion utilisateur",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password123!\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_validate_code",
+      "_type": "request",
+      "name": "Validate Activation Code",
+      "description": "Valider le code d'activation",
+      "url": "{{ _.base_url }}/api/auth/validate-code",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"code\": \"123456\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_resend_code",
+      "_type": "request",
+      "name": "Resend Activation Code",
+      "description": "Renvoyer le code d'activation",
+      "url": "{{ _.base_url }}/api/auth/resend-activation-code",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"john.doe@example.com\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "req_refresh_token",
+      "_type": "request",
+      "name": "Refresh Token",
+      "description": "Rafraîchir le token d'accès",
+      "url": "{{ _.base_url }}/api/auth/refresh-token",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refresh_token\": \"{{ _.refresh_token }}\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_auth"
+    },
+    {
+      "_id": "folder_user",
+      "_type": "request_group",
+      "name": "User",
+      "description": "Endpoints utilisateur",
+      "parentId": "wrk_money_flow"
+    },
+    {
+      "_id": "req_get_me",
+      "_type": "request",
+      "name": "Get Current User",
+      "description": "Récupérer les informations de l'utilisateur connecté",
+      "url": "{{ _.base_url }}/api/user",
+      "method": "GET",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_user"
+    },
+    {
+      "_id": "req_reset_password",
+      "_type": "request",
+      "name": "Reset Password",
+      "description": "Réinitialiser le mot de passe",
+      "url": "{{ _.base_url }}/api/user/reset-password",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"old_password\": \"Password123!\",\n  \"newPassword\": \"NewPassword456!\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_user"
+    },
+    {
+      "_id": "req_logout",
+      "_type": "request",
+      "name": "Logout",
+      "description": "Déconnexion utilisateur",
+      "url": "{{ _.base_url }}/api/user/logout",
+      "method": "POST",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_user"
+    },
+    {
+      "_id": "folder_category",
+      "_type": "request_group",
+      "name": "Categories",
+      "description": "Endpoints de gestion des catégories",
+      "parentId": "wrk_money_flow"
+    },
+    {
+      "_id": "req_create_category",
+      "_type": "request",
+      "name": "Create Category",
+      "description": "Créer une nouvelle catégorie avec icône",
+      "url": "{{ _.base_url }}/api/categories",
+      "method": "POST",
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          {
+            "name": "category",
+            "value": "{\"name\":\"Alimentation\",\"description\":\"Dépenses liées à l'alimentation\",\"color\":\"#FF5733\"}",
+            "type": "text",
+            "id": "pair_category"
+          },
+          {
+            "name": "icon",
+            "type": "file",
+            "fileName": "",
+            "id": "pair_icon"
+          }
+        ]
+      },
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parameters": [],
+      "parentId": "folder_category"
+    }
+  ]
+}
+
+

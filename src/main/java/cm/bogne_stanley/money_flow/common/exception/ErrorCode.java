@@ -26,7 +26,14 @@ public enum ErrorCode {
     
     // Erreurs générales
     RESOURCE_NOT_FOUND("Resource not found", HttpStatus.NOT_FOUND),
-    INTERNAL_ERROR("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+    INTERNAL_ERROR("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // Erreurs de catégorie
+    CATEGORY_ALREADY_EXISTS("Category already exists", HttpStatus.BAD_REQUEST),
+
+    // Erreurs de fichier
+    FILE_TRANSFER_ERROR("File transfer error", HttpStatus.INTERNAL_SERVER_ERROR);
+
 
     @NonNull
     private final String message;
