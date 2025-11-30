@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ErrorCode {
     // Erreurs d'authentification
-    INVALID_CREDENTIALS("Invalid credentials", HttpStatus.UNAUTHORIZED),
+    INVALID_CREDENTIALS("Invalid credentials", HttpStatus.BAD_REQUEST),
     ACCOUNT_NOT_ACTIVATED("Account not activated", HttpStatus.UNAUTHORIZED),
     USER_NOT_FOUND("User not found", HttpStatus.NOT_FOUND),
     EMAIL_ALREADY_EXISTS("Email already exists", HttpStatus.BAD_REQUEST),
@@ -29,10 +29,12 @@ public enum ErrorCode {
     INTERNAL_ERROR("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR),
 
     // Erreurs de catégorie
-    CATEGORY_ALREADY_EXISTS("Category already exists", HttpStatus.BAD_REQUEST),
+    CATEGORY_ALREADY_EXISTS("You already have a category with this name", HttpStatus.BAD_REQUEST),
+    CATEGORY_NOT_FOUND("Category not found", HttpStatus.NOT_FOUND),
 
     // Erreurs de fichier
-    FILE_TRANSFER_ERROR("File transfer error", HttpStatus.INTERNAL_SERVER_ERROR);
+    FILE_TRANSFER_ERROR("File transfer error", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_NOT_FOUND("File not found", HttpStatus.NOT_FOUND);
 
 
     @NonNull

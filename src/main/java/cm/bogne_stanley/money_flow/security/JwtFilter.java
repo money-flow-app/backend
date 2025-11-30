@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import cm.bogne_stanley.money_flow.data.entity.User;
 import cm.bogne_stanley.money_flow.domain.service.UserService;
@@ -22,9 +23,12 @@ public class JwtFilter extends OncePerRequestFilter{
     private final TokenUtils tokenUtils;
     private final UserService userService;
 
+    private final HandlerExceptionResolver handlerExceptionResolver;
+
     @Override
     protected void doFilterInternal( @NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+        try {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
@@ -40,7 +44,11 @@ public class JwtFilter extends OncePerRequestFilter{
             }
         }
 
-        filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response);
+        } catch (Exception ex) {
+            logger.error("Error in JwtFilter: {}", ex);
+            handlerExceptionResolver.resolveException(request, response, null, ex);
+        }
     }
     
 }
