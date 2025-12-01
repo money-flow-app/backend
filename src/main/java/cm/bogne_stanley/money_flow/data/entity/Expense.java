@@ -1,6 +1,5 @@
 package cm.bogne_stanley.money_flow.data.entity;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -30,8 +29,8 @@ public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
-    private BigDecimal amount;
+    private String title;
+    private Double amount;
     private ExpenseType type;
     private ExpenseFrequency frequency;
     private Instant nextPaymentDate;
