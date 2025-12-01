@@ -12,11 +12,12 @@ import cm.bogne_stanley.money_flow.common.custom_validator.annotations.ValidFile
 import cm.bogne_stanley.money_flow.data.entity.ExpenseFrequency;
 import cm.bogne_stanley.money_flow.data.entity.ExpenseType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record ExpenseRequest(
     @NotBlank(message = "Title is required")
     String title,
-    @NotBlank(message = "Amount is required")
+    @NotNull(message = "Amount is required")
     Double amount,
     @NotBlank(message = "Type is required")
     @ValidEnumValue(enumClass = ExpenseType.class, message = "Type must be DONE, FIXED or RECURRING")

@@ -1,6 +1,8 @@
 package cm.bogne_stanley.money_flow.domain.service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,8 @@ public class AttachmentService {
         Attachment attachment = Attachment.builder()
             .path(filePath)
             .expense(expense)
+            .name(getFileName(file))
+            .extension(getFileExtension(file))
             .build();
         return attachmentRepository.save(attachment);
     }
@@ -38,7 +42,7 @@ public class AttachmentService {
     public List<Attachment> bulkCreateAttachments(Expense expense, List<MultipartFile> files) {
         return files.stream()
             .map(file -> createAttachment(expense, file))
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
     @SuppressWarnings("null")
@@ -51,5 +55,21 @@ public class AttachmentService {
 
     public void deleteAttachmentsByIds(List<Long> ids) {
         ids.forEach(this::deleteAttachment);
+    }
+
+    private String getFileExtension(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            return null;
+        }
+        return originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+    }
+
+    private String getFileName(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null) {
+            return null;
+        }
+        return originalFilename.substring(0, originalFilename.lastIndexOf('.'));
     }
 }

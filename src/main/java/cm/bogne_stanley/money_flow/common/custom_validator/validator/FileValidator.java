@@ -2,6 +2,8 @@ package cm.bogne_stanley.money_flow.common.custom_validator.validator;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import cm.bogne_stanley.money_flow.common.custom_validator.annotations.ValidFile;
@@ -9,6 +11,7 @@ import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 public class FileValidator implements ConstraintValidator<ValidFile, Object> {
+    private final Logger logger = LoggerFactory.getLogger(FileValidator.class);
 
     private boolean optional;
 
@@ -22,7 +25,9 @@ public class FileValidator implements ConstraintValidator<ValidFile, Object> {
         if (value == null) {
             return optional;
         }
-        if (!(value instanceof MultipartFile) || !(value instanceof List)) {
+        if (!(value instanceof MultipartFile) && !(value instanceof List)) {
+            logger.warn("Invalid file type or list: {}", value.getClass());
+            logger.warn("Value: {}", value instanceof List );
             return false;
         }
 
@@ -33,6 +38,7 @@ public class FileValidator implements ConstraintValidator<ValidFile, Object> {
             }
             for (Object obj : fileList) {
                 if (!(obj instanceof MultipartFile)) {
+                    logger.warn("Invalid file type: {}", obj.getClass());
                     return false;
                 }
                 MultipartFile file = (MultipartFile) obj;
