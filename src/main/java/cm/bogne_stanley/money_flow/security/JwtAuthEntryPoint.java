@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
+    @SuppressWarnings("unused")
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
     private final HandlerExceptionResolver handlerExceptionResolver;
 
