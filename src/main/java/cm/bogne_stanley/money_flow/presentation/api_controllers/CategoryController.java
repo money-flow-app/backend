@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CategoryController {
     private final CategoryService categoryService;
+    @SuppressWarnings("unused")
     private final Logger logger = LoggerFactory.getLogger(CategoryController.class);
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
