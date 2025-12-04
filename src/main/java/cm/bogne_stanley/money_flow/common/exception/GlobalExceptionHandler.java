@@ -54,11 +54,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CustomValidationException.class)
     public ResponseEntity<Map<String, Object>> handleCustomValidationException(CustomValidationException ex) {
-        logger.warn("Custom validation error on field {}: {}", ex.getField(), ex.getMessage());
+        Map<String, String> errors = new HashMap<>();
+        ex.getErrors().forEach(error -> {
+            error.forEach((key, value) -> errors.putIfAbsent(key, value));
+        });
+        logger.warn("Custom validation error on fields: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of(
-                    "errors", Map.of(ex.getField(), ex.getMessage())
-                ));
+                .body(Map.of("errors", errors));
     }
 
     @ExceptionHandler(AuthenticationException.class)
