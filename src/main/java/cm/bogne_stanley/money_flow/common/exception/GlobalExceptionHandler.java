@@ -1,5 +1,6 @@
 package cm.bogne_stanley.money_flow.common.exception;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +15,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -40,13 +43,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
         logger.warn("Validation error: {}", ex.getMessage());
+        Object target = ex.getTarget();
         Map<String, String> errors = new HashMap<>();
         for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
             String message = fieldError.getDefaultMessage();
             if (String.valueOf(fieldError.getCode()).equals("typeMismatch")){
                 message = "Invalid type for field " + fieldError.getField();
             }
-            errors.putIfAbsent(fieldError.getField(), message);
+            errors.putIfAbsent(getJsonAliasName(target, fieldError.getField()), message);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("errors", errors));
@@ -96,6 +100,29 @@ public class GlobalExceptionHandler {
         logger.error("Error: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+      /**
+     * Extrait le(s) nom(s) JSON du champ depuis l'annotation @JsonAlias,
+     * ou retourne le nom du champ Java si l'annotation n'existe pas.
+     * Si l'annotation existe, retourne le premier alias, sinon le nom Java.
+     */
+      private String getJsonAliasName(Object target, String fieldName) {
+        if (target == null) {
+            return fieldName;
+        }
+        
+        try {
+            Field field = target.getClass().getDeclaredField(fieldName);
+            JsonAlias jsonAlias = field.getAnnotation(JsonAlias.class);
+            if (jsonAlias != null && jsonAlias.value().length > 0) {
+                return jsonAlias.value()[0];
+            }
+        } catch (NoSuchFieldException | SecurityException e) {
+            // Si le champ n'existe pas ou n'est pas accessible, retourner le nom original
+        }
+        
+        return fieldName;
     }
     
 }

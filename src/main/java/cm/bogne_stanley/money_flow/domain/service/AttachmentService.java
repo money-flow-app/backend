@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import cm.bogne_stanley.money_flow.common.exception.BusinessException;
@@ -20,6 +21,7 @@ public class AttachmentService {
     private final StorageService storageService;
     private final AttachmentRepository attachmentRepository;
 
+    @Transactional
     public void deleteAttachmentsByExpense(Expense expense) {
         attachmentRepository.findByExpense(expense).forEach(attachment -> {
             storageService.deleteFile(attachment.getPath());
@@ -39,6 +41,7 @@ public class AttachmentService {
         return attachmentRepository.save(attachment);
     }
 
+    @Transactional
     public List<Attachment> bulkCreateAttachments(Expense expense, List<MultipartFile> files) {
         return files.stream()
             .map(file -> createAttachment(expense, file))

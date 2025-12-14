@@ -17,6 +17,8 @@ import jakarta.validation.Payload;
 public @interface ValidDate {
     String message() default "Invalid date format YYYY-MM-DD";
 
+    boolean isDateTime() default false;
+
     boolean optional() default true;
 
     Class<?>[] groups() default {};

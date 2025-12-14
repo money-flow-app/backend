@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import cm.bogne_stanley.money_flow.common.exception.BusinessException;
 import cm.bogne_stanley.money_flow.common.exception.CustomValidationException;
@@ -29,8 +29,10 @@ import cm.bogne_stanley.money_flow.data.entity.ExpenseType;
 import cm.bogne_stanley.money_flow.data.entity.User;
 import cm.bogne_stanley.money_flow.data.repository.CategoryRepository;
 import cm.bogne_stanley.money_flow.data.repository.ExpenseRepository;
+import cm.bogne_stanley.money_flow.presentation.dto.request.expense.AddAttachmentRequest;
 import cm.bogne_stanley.money_flow.presentation.dto.request.expense.ExpenseRequest;
 import cm.bogne_stanley.money_flow.presentation.dto.request.expense.GetExpenseFilter;
+import cm.bogne_stanley.money_flow.presentation.dto.request.expense.RemoveAttachmentRequest;
 import cm.bogne_stanley.money_flow.presentation.dto.response.expense.ExpenseResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,33 @@ public class ExpenseService {
     private final ExpenseMapper expenseMapper;
     private final PaginationMapper paginationMapper;
     private final Logger logger = LoggerFactory.getLogger(ExpenseService.class);
+
+    public ExpenseResponse getExpense(Long id) {
+        var expense = expenseRepository.findByIdAndUser(id, getCurrentUser())
+                .orElseThrow(() -> new BusinessException(ErrorCode.EXPENSE_NOT_FOUND));
+        return expenseMapper.toResponse(expense);
+    }
+
+    public PaginatedData<ExpenseResponse> getExpenses(GetExpenseFilter filter, Pageable pageable) {
+        if (filter == null) {
+            LocalDate now = LocalDate.now();
+            LocalDate firstDayOfMonth = now.withDayOfMonth(1);
+            LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
+            filter = new GetExpenseFilter(firstDayOfMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    lastDayOfMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+        var isValid = isFilterValid(filter);
+        Page<Expense> expenses;
+        if (!isValid) {
+            expenses = expenseRepository.findAllByUserOrderByCreatedAtDesc(getCurrentUser(), pageable);
+        } else {
+            expenses = expenseRepository.findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(getCurrentUser(),
+                        filter.startDate().atStartOfDay().toInstant(ZoneOffset.UTC),
+                        filter.endDate().atStartOfDay().plusDays(1).toInstant(ZoneOffset.UTC), pageable);
+        }
+        PaginatedData<ExpenseResponse> paginatedData = paginationMapper.toPaginatedData(expenses.map(expenseMapper::toResponse));
+        return paginatedData;
+    }
 
     public ExpenseResponse createExpense(ExpenseRequest expenseRequest) {
         logger.info("Creating expense: {}", expenseRequest.attachments());
@@ -88,12 +117,12 @@ public class ExpenseService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXPENSE_NOT_FOUND));
     }
 
-    public void bulkDeleteAttachment(Long expenseId, List<Long> attachmentIds) {
+    public ExpenseResponse bulkDeleteAttachment(Long expenseId, RemoveAttachmentRequest request) {
         var expense = expenseRepository.findByIdAndUser(expenseId, getCurrentUser())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXPENSE_NOT_FOUND));
 
         var attachments = expense.getAttachments().stream()
-                .filter(attachment -> attachmentIds.contains(attachment.getId()))
+                .filter(attachment -> request.attachmentIds().contains(attachment.getId()))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         attachmentService
@@ -101,27 +130,27 @@ public class ExpenseService {
 
         expense.getAttachments().removeAll(attachments);
 
-        expenseRepository.saveAndFlush(expense);
+        return expenseMapper.toResponse(expenseRepository.saveAndFlush(expense));
     }
 
-    public Expense addAttachment(Long expenseId, List<MultipartFile> file) {
+    public ExpenseResponse addAttachments(Long expenseId, AddAttachmentRequest request) {
         var expense = expenseRepository.findByIdAndUser(expenseId, getCurrentUser())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXPENSE_NOT_FOUND));
 
-        var attachments = attachmentService.bulkCreateAttachments(expense, file);
+        var attachments = attachmentService.bulkCreateAttachments(expense, request.attachments());
         expense.getAttachments().addAll(attachments);
 
-        return expenseRepository.save(expense);
+        return expenseMapper.toResponse(expenseRepository.save(expense));
     }
 
-    public Expense markExpenseAsDone(Long id) {
+    public ExpenseResponse markExpenseAsDone(Long id) {
         var expense = expenseRepository.findByIdAndUser(id, getCurrentUser())
                 .orElseThrow(() -> new BusinessException(ErrorCode.EXPENSE_NOT_FOUND));
 
         expense.setType(ExpenseType.DONE);
         expense.setPaidDate(Instant.now());
 
-        return expenseRepository.save(expense);
+        return expenseMapper.toResponse(expenseRepository.save(expense));
     }
 
     private void validateExpense(Expense expense) {
@@ -164,14 +193,13 @@ public class ExpenseService {
 
         validateExpense(expense);
 
-        if (expense.getType().equals(ExpenseType.DONE)) {
+        if (expense.getType().equals(ExpenseType.DONE) && expense.getPaidDate() == null) {
             expense.setPaidDate(expenseRequest.paidDate() == null ? Instant.now()
                     : expenseRequest.paidDate().atZone(ZoneOffset.UTC).toInstant());
         }
 
         if (expenseRequest.categoryId() != null) {
-            @SuppressWarnings("null")
-            var category = categoryService.findById(expenseRequest.categoryId())
+            var category = categoryService.findByIdAndUser(expenseRequest.categoryId(), getCurrentUser())
                     .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
             expense.setCategory(category);
         } else {
@@ -181,36 +209,22 @@ public class ExpenseService {
         return expense;
     }
 
-    public PaginatedData<ExpenseResponse> getExpenses(GetExpenseFilter filter, Pageable pageable) {
-        if (filter == null) {
-            LocalDate now = LocalDate.now();
-            LocalDate firstDayOfMonth = now.withDayOfMonth(1);
-            LocalDate lastDayOfMonth = now.withDayOfMonth(now.lengthOfMonth());
-            filter = new GetExpenseFilter(firstDayOfMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                    lastDayOfMonth.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        }
-        isFilterValid(filter);
-        var expenses = expenseRepository
-                .findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(getCurrentUser(),
-                        filter.startDate().atStartOfDay().toInstant(ZoneOffset.UTC),
-                        filter.endDate().atStartOfDay().plusDays(1).toInstant(ZoneOffset.UTC), pageable)
-                .map(expenseMapper::toResponse);
-        PaginatedData<ExpenseResponse> paginatedData = paginationMapper.toPaginatedData(expenses);
-        return paginatedData;
-    }
-
-    private void isFilterValid(GetExpenseFilter filter) {
+    private boolean isFilterValid(GetExpenseFilter filter) {
         List<Map<String, String>> errors = new ArrayList<>();
-        if (filter.startDate() != null && filter.endDate() == null) {
-            errors.add(Map.of("end_date", "Start date is provided but End date is not"));
+        
+        if (filter.startDate() == null || filter.endDate() == null) {
+            if (filter.startDate() != null){
+                errors.add(Map.of("end_date", "Start date is provided but End date is not"));
+            } else if (filter.endDate() != null) {
+                errors.add(Map.of("start_date", "End date is provided but Start date is not"));
+            } else {
+                return false;
+            }
         }
-        if (filter.startDate() == null && filter.endDate() != null) {
-            errors.add(Map.of("end_date", "End date is provided but Start date is not"));
-        }
-        if (!(filter.startDate() instanceof LocalDate)) {
+        if (filter.startDate() != null && !(filter.startDate() instanceof LocalDate)) {
             errors.add(Map.of("start_date", "Start date must be a valid date format YYYY-MM-DD"));
         }
-        if (!(filter.endDate() instanceof LocalDate)) {
+        if (filter.endDate() != null && !(filter.endDate() instanceof LocalDate)) {
             errors.add(Map.of("end_date", "End date must be a valid date format YYYY-MM-DD"));
         }
         if (filter.startDate() != null && filter.endDate() != null
@@ -220,6 +234,7 @@ public class ExpenseService {
         if (errors.size() > 0) {
             throw new CustomValidationException(errors);
         }
+        return true;
     }
 
 }

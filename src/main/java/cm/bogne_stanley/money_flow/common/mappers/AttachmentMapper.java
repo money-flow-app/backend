@@ -16,10 +16,7 @@ public class AttachmentMapper {
         return new AttachmentResponse(
             attachment.getId(),
             path,
-            attachment.getName(),
-            attachment.getExtension(),
-            attachment.getCreatedAt(),
-            attachment.getUpdatedAt()
+            attachment.getExtension()
         );
     }
     

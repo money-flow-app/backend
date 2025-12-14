@@ -13,4 +13,5 @@ import cm.bogne_stanley.money_flow.data.entity.User;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     Optional<Expense> findByIdAndUser(Long id, User user);
     Page<Expense> findAllByUserAndCreatedAtBetweenOrderByCreatedAtDesc(User user, Instant startDate, Instant endDate, Pageable pageable);
+    Page<Expense> findAllByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 }

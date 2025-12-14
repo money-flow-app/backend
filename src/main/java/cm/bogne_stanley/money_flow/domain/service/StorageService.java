@@ -68,8 +68,13 @@ public class StorageService {
     }
 
     public void deleteFile(String filename) {
+        var path = filename;
+        if(filename.startsWith("uploads/")) {
+            path = filename.replaceFirst("uploads/", "");
+        }
         try {
-            Path filePath = load(filename);
+            Path filePath = load(path);
+            logger.info("File path to delete: {}", filePath);
             Files.deleteIfExists(filePath);
         } catch (Exception e) {
             logger.error("Error deleting file {}: {}", filename, e.getMessage());
