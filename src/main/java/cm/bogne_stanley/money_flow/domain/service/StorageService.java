@@ -19,7 +19,7 @@ import cm.bogne_stanley.money_flow.common.exception.ErrorCode;
 
 @Service
 public class StorageService {
-    @Value("${app.upload.dir:uploads}")
+    @Value("${app.upload.directory:uploads}")
     private String UPLOAD_DIR;
 
     private final Logger logger = LoggerFactory.getLogger(StorageService.class);
@@ -57,7 +57,13 @@ public class StorageService {
                 Files.createDirectories(uploadPath);
             }
             String originalName = file.getOriginalFilename();
-            String extension = originalName != null ? originalName.substring(originalName.lastIndexOf(".")) : "";
+            String extension = "";
+            if (originalName != null) {
+                int lastDotIndex = originalName.lastIndexOf(".");
+                if (lastDotIndex >= 0 && lastDotIndex < originalName.length() - 1) {
+                    extension = originalName.substring(lastDotIndex);
+                }
+            }
             String newFileName = UUID.randomUUID().toString() + extension;
             Path filePath = uploadPath.resolve(newFileName);
             file.transferTo(filePath);

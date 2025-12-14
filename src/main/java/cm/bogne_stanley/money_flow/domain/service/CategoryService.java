@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final StorageService storageService;
-    @Value("${app.upload.dir:uploads}")
+    @Value("${app.upload.directory:uploads}")
     private String UPLOAD_DIR;
     private final CategoryMapper categoryMapper;
     private final PaginationMapper paginationMapper;

@@ -34,10 +34,6 @@ public class DateValidator implements ConstraintValidator<ValidDate, Object> {
                 return false;
             }
         }
-        if (value instanceof LocalDate) {
-            
-            return true;
-        }
         return true;
     }
 
