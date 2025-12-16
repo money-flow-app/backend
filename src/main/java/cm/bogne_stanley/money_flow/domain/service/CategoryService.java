@@ -1,8 +1,7 @@
 package cm.bogne_stanley.money_flow.domain.service;
 
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final StorageService storageService;
-    @Value("${app.upload.dir:uploads}")
+    @Value("${app.upload.directory:uploads}")
     private String UPLOAD_DIR;
     private final CategoryMapper categoryMapper;
     private final PaginationMapper paginationMapper;
@@ -47,13 +46,8 @@ public class CategoryService {
     }
 
     public PaginatedData<CategoryResponse> getAll(Pageable pageable) {
-        PaginatedData<Category> paginatedData = paginationMapper.toPaginatedData(categoryRepository.findByUser(getCurrentUser(), pageable));
-        return new PaginatedData<>(
-            paginatedData.content().stream()
-                .map(categoryMapper::toResponse)
-                .collect(Collectors.toList()),
-            paginatedData.metadata()
-        );
+        Page<CategoryResponse> categories = categoryRepository.findByUser(getCurrentUser(), pageable).map(categoryMapper::toResponse);
+        return paginationMapper.toPaginatedData(categories);
     }
 
     public CategoryResponse getById(Long id) {

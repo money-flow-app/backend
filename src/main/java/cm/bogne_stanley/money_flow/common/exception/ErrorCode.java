@@ -21,8 +21,8 @@ public enum ErrorCode {
     CODE_EXPIRED("Activation code expired", HttpStatus.GONE),
     
     // Erreurs de token
-    INVALID_TOKEN("Invalid token", HttpStatus.FORBIDDEN),
-    TOKEN_EXPIRED("Token expired", HttpStatus.FORBIDDEN),
+    INVALID_TOKEN("Invalid token", HttpStatus.UNAUTHORIZED),
+    TOKEN_EXPIRED("Token expired", HttpStatus.UNAUTHORIZED),
     
     // Erreurs générales
     RESOURCE_NOT_FOUND("Resource not found", HttpStatus.NOT_FOUND),
@@ -34,7 +34,11 @@ public enum ErrorCode {
 
     // Erreurs de fichier
     FILE_TRANSFER_ERROR("File transfer error", HttpStatus.INTERNAL_SERVER_ERROR),
-    FILE_NOT_FOUND("File not found", HttpStatus.NOT_FOUND);
+    FILE_NOT_FOUND("File not found", HttpStatus.NOT_FOUND),
+    DELETE_ERROR("File deletion error", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // Erreurs dépense
+    EXPENSE_NOT_FOUND("Expense not found", HttpStatus.NOT_FOUND);
 
 
     @NonNull

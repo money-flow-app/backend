@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -17,8 +19,10 @@ import cm.bogne_stanley.money_flow.common.exception.ErrorCode;
 
 @Service
 public class StorageService {
-    @Value("${app.upload.dir:uploads}")
+    @Value("${app.upload.directory:uploads}")
     private String UPLOAD_DIR;
+
+    private final Logger logger = LoggerFactory.getLogger(StorageService.class);
 
     public Resource loadAsResource(String filename) {
         try {
@@ -53,13 +57,34 @@ public class StorageService {
                 Files.createDirectories(uploadPath);
             }
             String originalName = file.getOriginalFilename();
-            String extension = originalName != null ? originalName.substring(originalName.lastIndexOf(".")) : "";
+            String extension = "";
+            if (originalName != null) {
+                int lastDotIndex = originalName.lastIndexOf(".");
+                if (lastDotIndex >= 0 && lastDotIndex < originalName.length() - 1) {
+                    extension = originalName.substring(lastDotIndex);
+                }
+            }
             String newFileName = UUID.randomUUID().toString() + extension;
             Path filePath = uploadPath.resolve(newFileName);
             file.transferTo(filePath);
             return filePath.toString().replace("\\", "/");
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.FILE_TRANSFER_ERROR, e.getMessage());
+        }
+    }
+
+    public void deleteFile(String filename) {
+        var path = filename;
+        if(filename.startsWith("uploads/")) {
+            path = filename.replaceFirst("uploads/", "");
+        }
+        try {
+            Path filePath = load(path);
+            logger.info("File path to delete: {}", filePath);
+            Files.deleteIfExists(filePath);
+        } catch (Exception e) {
+            logger.error("Error deleting file {}: {}", filename, e.getMessage());
+            logger.debug("Stack trace:", e);
         }
     }
 }
